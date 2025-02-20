@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # Backend (Laravel)
+  backend:
+    build: ./backend  # Menggunakan Dockerfile dari folder backend
+    container_name: laravel_app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+    depends_on:
+      - mongodb  # Backend baru bisa berjalan jika MongoDB sudah aktif
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_KEY: base64:randomKey
+      DB_CONNECTION: mongodb
+      DB_HOST: mongodb
+      DB_PORT: 27017
+      DB_DATABASE: dropship_db
+
+  # MongoDB Database
+  mongodb:
+    image: mongo
+    container_name: mongo_db
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  # Frontend (React)
+  frontend:
+    build: ./frontend  # Menggunakan Dockerfile dari folder frontend
+    container_name: react_app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  mongodb_data:
